@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build, Tag, and Push Docker Image
 
 on:
   push:
@@ -7,27 +7,27 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-
+    
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '20'
-
+    
     - name: Build Docker image
       run: |
         docker build -t dpentim78/simple-web-app:${{ github.sha }} .
-
+    
     - name: Log in to Docker Hub
       run: |
-        echo "Jumamudo84" | docker login -u "dpentim78" --password-stdin
-
-    - name: Push Docker image
+        echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "dpentim78" --password-stdin
+    
+    - name: Tag and Push Docker image
       run: |
-        docker push dpentim78/simple-web-app:${{ github.sha }}
+        docker tag dpentim78/simple-web-app:${{ github.sha }} dpentim78/simple-web-app:1.0.0
+        docker push dpentim78/simple-web-app:1.0.0
 
 
 
