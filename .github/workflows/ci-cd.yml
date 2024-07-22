@@ -1,39 +1,21 @@
-name: CI/CD Pipeline
-
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-push:
+
+  build:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
-      
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
+    - uses: actions/checkout@v2
+    
+    - name: Build and push Docker image
+      uses: docker/build-and-push-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        
-    - name: Build and push Docker image
-      uses: docker/build-and-push-action@v2
-      with:
-        context: .
-        push: true
-        tags: dpentim78/simple-web-app:${{ github.sha }}
-        
-    - name: Update Kubernetes manifests
-      run: |
-        sed -i 's|image: dpentim78/simple-web-app:.*|image: dpentim78/simple-web-app:${{ github.sha }}|' k8s/deployment.yaml
-        
-    - name: Commit and push changes
-      run: |
-        git config --global user.name 'GitHub Actions'
-        git config --global user.email 'actions@github.com'
-        git add k8s/deployment.yaml
-        git commit -m "Update Docker image tag in Kubernetes manifest"
-        git push
-
+        repository: dpentim78/simple-web-app:latest
+        tag_with_ref: true
