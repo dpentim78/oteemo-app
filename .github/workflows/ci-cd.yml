@@ -16,20 +16,15 @@ jobs:
       with:
         node-version: '20'
     
+    - name: Log in to Docker Hub
+      run: |
+        echo "Jumamudo84" | docker login -u "dpentim78" --password-stdin
+    
     - name: Build Docker image
       run: |
         docker build -t dpentim78/simple-web-app:${{ github.sha }} .
-    
-    - name: Log in to Docker Hub
-      run: |
-        echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "dpentim78" --password-stdin
     
     - name: Tag and Push Docker image
       run: |
         docker tag dpentim78/simple-web-app:${{ github.sha }} dpentim78/simple-web-app:1.0.0
         docker push dpentim78/simple-web-app:1.0.0
-
-
-
-
-
