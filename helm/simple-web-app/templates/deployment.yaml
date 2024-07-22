@@ -1,23 +1,41 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-deployment
+  name: simple-web-app
+  labels:
+    app: simple-web-app
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 3
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      app: simple-web-app
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}
+        app: simple-web-app
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.targetPort }}
-              protocol: TCP
-
+      - name: simple-web-app
+        image: dpentim78/simple-web-app:1.0.0
+        ports:
+        - containerPort: 3000
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "512Mi"
+          requests:
+            cpu: "0.25"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-web-app-service
+spec:
+  selector:
+    app: simple-web-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer
