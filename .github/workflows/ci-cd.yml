@@ -1,4 +1,7 @@
-push:
+name: CI/CD Pipeline
+
+on:
+  push:
     branches: [ main ]
 
 jobs:
@@ -13,13 +16,18 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Build and push Docker image
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build Docker image
       run: |
         docker build -t dpentim78/simple-web-app:${{ github.sha }} .
-        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Push Docker image
+      run: |
         docker push dpentim78/simple-web-app:${{ github.sha }}
 
     - name: Update Helm chart and deploy
@@ -32,8 +40,12 @@ jobs:
         git push
 
         curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+        # Ensure Helm is in the PATH
+        helm version
+
+        # Assuming you have ArgoCD CLI and Kubernetes kubeconfig properly set up
         argocd login ${{ secrets.ARGOCD_SERVER }} --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }}
         argocd app sync simple-web-app --namespace dev
         argocd app wait simple-web-app --timeout 600s
 
-~
