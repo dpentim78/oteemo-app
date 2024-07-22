@@ -19,7 +19,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t dpentim78/simple-web-app:${{ github.sha }} .
+        docker build -t myuser/myapp:${{ github.sha }} .
 
     - name: Log in to Docker Hub
       run: |
@@ -30,10 +30,11 @@ jobs:
 
     - name: Push Docker image
       run: |
-        docker push dpentim78/simple-web-app:${{ github.sha }}
+        docker push myuser/myapp:${{ github.sha }}
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
 
 
 
