@@ -21,10 +21,12 @@ jobs:
         docker build -t dpentim78/simple-web-app:${{ github.sha }} .
 
     - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      env:
+        DOCKER_USERNAME: dpentim78
+        DOCKER_PASSWORD: Jumamudo84
 
     - name: Check values.yaml before sed
       run: cat helm/simple-web-app/values.yaml
@@ -51,7 +53,12 @@ jobs:
     - name: Deploy with ArgoCD
       run: |
         helm version
-        argocd login ${{ secrets.ARGOCD_SERVER }} --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }}
+        argocd login $ARGOCD_SERVER --auth-token $ARGOCD_AUTH_TOKEN
         argocd app sync simple-web-app --namespace dev
         argocd app wait simple-web-app --timeout 600s
+
+      env:
+        ARGOCD_SERVER: your-argocd-server
+        ARGOCD_AUTH_TOKEN: your-argocd-auth-token
+
 
