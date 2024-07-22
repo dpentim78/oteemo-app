@@ -19,21 +19,16 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t myuser/myapp:${{ github.sha }} .
+        docker build -t dpentim78/simple-web-app:${{ github.sha }} .
 
     - name: Log in to Docker Hub
       run: |
-        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        echo "Jumamudo84" | docker login -u "dpentim78" --password-stdin
 
     - name: Push Docker image
       run: |
-        docker push myuser/myapp:${{ github.sha }}
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        docker push dpentim78/simple-web-app:${{ github.sha }}
+
 
 
 
