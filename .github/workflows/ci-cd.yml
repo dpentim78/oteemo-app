@@ -1,7 +1,4 @@
-name: CI/CD Pipeline
-
-on:
-  push:
+push:
     branches: [ main ]
 
 jobs:
@@ -39,3 +36,4 @@ jobs:
         argocd app sync simple-web-app --namespace dev
         argocd app wait simple-web-app --timeout 600s
 
+~
