@@ -1,5 +1,4 @@
 apiVersion: v2
 name: simple-web-app
-description: A simple web application for GitOps demo
+description: A simple web application
 version: 0.1.0
-

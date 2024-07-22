@@ -1,22 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "simple-web-app.fullname" . }}
-  labels:
-    app: {{ include "simple-web-app.name" . }}
+  name: {{ .Release.Name }}-deployment
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "simple-web-app.name" . }}
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ include "simple-web-app.name" . }}
+        app: {{ .Release.Name }}
     spec:
       containers:
-      - name: simple-web-app
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        ports:
-        - containerPort: {{ .Values.service.targetPort }}
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
 
