@@ -23,28 +23,34 @@ jobs:
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
-        username: dpentim78
-        password: dckr_pat_a7yNMfm1mLOv71UxoGm1fN-m-2I
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Push Docker image
-      run: |
-        docker push dpentim78/simple-web-app:${{ github.sha }}
+    - name: Check values.yaml before sed
+      run: cat helm/simple-web-app/values.yaml
 
-    - name: Update Helm chart and deploy
+    - name: Update Helm chart image tag
       run: |
         sed -i 's|image: dpentim78/simple-web-app:.*|image: dpentim78/simple-web-app:${{ github.sha }}|' helm/simple-web-app/values.yaml
+
+    - name: Check values.yaml after sed
+      run: cat helm/simple-web-app/values.yaml
+
+    - name: Commit and push changes
+      run: |
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
         git add helm/simple-web-app/values.yaml
-        git commit -m "Update image tag to ${{ github.sha }}"
+        git commit -m "Update image tag to ${{ github.sha }}" || echo "No changes to commit"
         git push
 
+    - name: Install Helm
+      run: |
         curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-        # Ensure Helm is in the PATH
+    - name: Deploy with ArgoCD
+      run: |
         helm version
-
-        # Assuming you have ArgoCD CLI and Kubernetes kubeconfig properly set up
         argocd login ${{ secrets.ARGOCD_SERVER }} --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }}
         argocd app sync simple-web-app --namespace dev
         argocd app wait simple-web-app --timeout 600s
