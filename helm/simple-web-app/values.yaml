@@ -1,0 +1,11 @@
+image:
+  repository: dpentim78/simple-web-app
+  tag: "latest"
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3000
+
+replicaCount: 3
+
