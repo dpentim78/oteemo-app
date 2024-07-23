@@ -1,30 +1,64 @@
-name: Build, Tag, and Push Docker Image
-
+name: Build, Package, and Deploy
 on:
   push:
     branches: [ main ]
-
 jobs:
-  build-and-push:
+  build-package-deploy:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    
+
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '20'
-    
-    - name: Log in to Docker Hub
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: dpentim78
+        password: Jumamudo84
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: dpentim78/simple-web-app:${{ github.sha }},dpentim78/simple-web-app:latest
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.12.0
+
+    - name: Package Helm chart
       run: |
-        echo "Jumamudo84" | docker login -u "dpentim78" --password-stdin
-    
-    - name: Build Docker image
+        helm package .
+
+    - name: Update Helm chart with new image tag
       run: |
-        docker build -t dpentim78/simple-web-app:${{ github.sha }} .
-    
-    - name: Tag and Push Docker image
+        sed -i 's/tag: "latest"/tag: "${{ github.sha }}"/' simple-web-app/values.yaml
+
+    - name: Push Helm chart to GitHub Pages
+      uses: actions/upload-artifact@v3
+      with:
+        name: helm-chart
+        path: simple-web-app-*.tgz
+
+    - name: Update kube-config
       run: |
-        docker tag dpentim78/simple-web-app:${{ github.sha }} dpentim78/simple-web-app:1.0.0
-        docker push dpentim78/simple-web-app:1.0.0
+        sed -i 's/image: dpentim78\/simple-web-app:1.0.0/image: dpentim78\/simple-web-app:${{ github.sha }}/' kubernetes-manifests.yaml
+
+    - name: Commit and push if changed
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git add -A
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update image to ${{ github.sha }}" && git push)
